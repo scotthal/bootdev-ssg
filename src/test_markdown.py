@@ -3,6 +3,8 @@ import unittest
 from markdown import extract_markdown_images
 from markdown import extract_markdown_links
 from markdown import split_nodes_delimiter
+from markdown import split_nodes_image
+from markdown import split_nodes_link
 from textnode import TextNode, TextType
 
 
@@ -124,12 +126,15 @@ class TestMarkdown(unittest.TestCase):
         with self.assertRaises(TypeError):
             extract_markdown_images(None)
 
+    def multi_image_text(self):
+        result = "![alt text](https://example.com/alt.png)"
+        result += " [link text](https://example.com/)"
+        result += " I like cheese!"
+        result += " ![cheese text](https://example.com/cheese.png)"
+        return result
+
     def test_extract_images_multiple(self):
-        output = extract_markdown_images("""
-![alt text](https://example.com/alt.png)
-[link text](https://example.com/)
-I like cheese!
-![cheese text](https://example.com/cheese.png)""")
+        output = extract_markdown_images(self.multi_image_text())
         self.assertEqual(output, [
             ("alt text", "https://example.com/alt.png"),
             ("cheese text", "https://example.com/cheese.png"),
@@ -156,16 +161,79 @@ I like cheese!
         with self.assertRaises(TypeError):
             extract_markdown_links(None)
 
+    def multi_link_text(self):
+        result = "[alt text](https://example.com/alt.png)"
+        result += " I like cheese!"
+        result += " ![cheese text](https://example.com/cheese.png)"
+        result += " [cheese text 2](https://example.com/cheese2.png)"
+        return result
+
     def test_extract_links_multiple(self):
-        output = extract_markdown_links("""
-[alt text](https://example.com/alt.png)
-I like cheese!
-![cheese text](https://example.com/cheese.png)
-[cheese text 2](https://example.com/cheese2.png)""")
+        output = extract_markdown_links(self.multi_link_text())
         self.assertEqual(output, [
             ("alt text", "https://example.com/alt.png"),
             ("cheese text 2", "https://example.com/cheese2.png"),
         ])
+
+    def test_split_image(self):
+        input = TextNode(self.multi_image_text(), TextType.PLAIN)
+        output = split_nodes_image([input])
+        self.assertEqual(len(output), 5)
+        self.assertEqual(output[0].text_type, TextType.PLAIN)
+        self.assertEqual(output[1].text_type, TextType.IMAGE)
+        self.assertEqual(output[1].text, "alt text")
+        self.assertEqual(output[1].url, "https://example.com/alt.png")
+        self.assertEqual(output[2].text_type, TextType.PLAIN)
+        self.assertEqual(output[3].text_type, TextType.IMAGE)
+        self.assertEqual(output[3].text, "cheese text")
+        self.assertEqual(output[3].url, "https://example.com/cheese.png")
+        self.assertEqual(output[4].text_type, TextType.PLAIN)
+
+    def test_split_image_no_image(self):
+        input = TextNode("(no images in here)", TextType.PLAIN)
+        output = split_nodes_image([input])
+        self.assertEqual(len(output), 1)
+        self.assertEqual(output[0].text_type, TextType.PLAIN)
+
+    def test_split_image_empty(self):
+        output = split_nodes_image([])
+        self.assertEqual(len(output), 0)
+
+    def test_split_image_not_plain(self):
+        input = TextNode("bold text", TextType.BOLD)
+        output = split_nodes_image([input])
+        self.assertEqual(len(output), 1)
+        self.assertEqual(output[0].text_type, TextType.BOLD)
+
+    def test_split_link(self):
+        input = TextNode(self.multi_link_text(), TextType.PLAIN)
+        output = split_nodes_link([input])
+        self.assertEqual(len(output), 5)
+        self.assertEqual(output[0].text_type, TextType.PLAIN)
+        self.assertEqual(output[1].text_type, TextType.LINK)
+        self.assertEqual(output[1].text, "alt text")
+        self.assertEqual(output[1].url, "https://example.com/alt.png")
+        self.assertEqual(output[2].text_type, TextType.PLAIN)
+        self.assertEqual(output[3].text_type, TextType.LINK)
+        self.assertEqual(output[3].text, "cheese text 2")
+        self.assertEqual(output[3].url, "https://example.com/cheese2.png")
+        self.assertEqual(output[4].text_type, TextType.PLAIN)
+
+    def test_split_link_no_link(self):
+        input = TextNode("[no links here]", TextType.PLAIN)
+        output = split_nodes_link([input])
+        self.assertEqual(len(output), 1)
+        self.assertEqual(output[0].text_type, TextType.PLAIN)
+
+    def test_split_link_empty(self):
+        output = split_nodes_link([])
+        self.assertEqual(len(output), 0)
+
+    def test_split_link_not_plain(self):
+        input = TextNode("bold text", TextType.BOLD)
+        output = split_nodes_link([input])
+        self.assertEqual(len(output), 1)
+        self.assertEqual(output[0].text_type, TextType.BOLD)
 
 
 if __name__ == "__main__":

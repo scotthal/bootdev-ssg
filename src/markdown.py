@@ -26,8 +26,44 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     return new_nodes
 
 
+IMAGE_PATTERN = r"!\[(.*?)\]\((.*?)\)"
+
+
 def extract_markdown_images(text):
-    return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
+    return re.findall(IMAGE_PATTERN, text)
+
+
+LINK_PATTERN = r"(?<!!)\[(.*?)\]\((.*?)\)"
+
 
 def extract_markdown_links(text):
-    return re.findall(r"(?<!!)\[(.*?)\]\((.*?)\)", text)
+    return re.findall(LINK_PATTERN, text)
+
+
+def split_nodes_pattern(old_nodes, pattern, text_type):
+    if len(old_nodes) == 0:
+        return []
+    new_nodes = []
+    for node in old_nodes:
+        current_start = 0
+        if node.text_type != TextType.PLAIN:
+            new_nodes.append(node)
+            continue
+        for match in re.finditer(pattern, node.text):
+            start = match.start()
+            end = match.end()
+            new_nodes.append(
+                TextNode(node.text[current_start:start], TextType.PLAIN))
+            link_text = match.group(1)
+            url = match.group(2)
+            new_nodes.append(TextNode(link_text, text_type, url))
+            current_start = end
+        new_nodes.append(
+            TextNode(node.text[current_start:], TextType.PLAIN))
+    return new_nodes
+
+def split_nodes_image(old_nodes):
+    return split_nodes_pattern(old_nodes, IMAGE_PATTERN, TextType.IMAGE)
+
+def split_nodes_link(old_nodes):
+    return split_nodes_pattern(old_nodes, LINK_PATTERN, TextType.LINK)
