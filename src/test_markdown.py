@@ -5,6 +5,7 @@ from markdown import extract_markdown_links
 from markdown import split_nodes_delimiter
 from markdown import split_nodes_image
 from markdown import split_nodes_link
+from markdown import text_to_textnodes
 from textnode import TextNode, TextType
 
 
@@ -234,6 +235,47 @@ class TestMarkdown(unittest.TestCase):
         output = split_nodes_link([input])
         self.assertEqual(len(output), 1)
         self.assertEqual(output[0].text_type, TextType.BOLD)
+
+    def all_type_text(self):
+        result = "This is"
+        result += " **text**"
+        result += " with an"
+        result += " _italic_"
+        result += " word and a"
+        result += " `code block`"
+        result += " and an"
+        result += " ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg)"
+        result += " and a"
+        result += " [link](https://boot.dev)"
+        return result
+
+    def test_textnodes(self):
+        output = text_to_textnodes(self.all_type_text())
+        self.assertEqual(len(output), 11)
+        self.assertEqual(output[0].text_type, TextType.PLAIN)
+        self.assertEqual(output[0].text, "This is ")
+        self.assertEqual(output[1].text_type, TextType.BOLD)
+        self.assertEqual(output[1].text, "text")
+        self.assertEqual(output[2].text_type, TextType.PLAIN)
+        self.assertEqual(output[2].text, " with an ")
+        self.assertEqual(output[3].text_type, TextType.ITALIC)
+        self.assertEqual(output[3].text, "italic")
+        self.assertEqual(output[4].text_type, TextType.PLAIN)
+        self.assertEqual(output[4].text, " word and a ")
+        self.assertEqual(output[5].text_type, TextType.CODE)
+        self.assertEqual(output[5].text, "code block")
+        self.assertEqual(output[6].text_type, TextType.PLAIN)
+        self.assertEqual(output[6].text, " and an ")
+        self.assertEqual(output[7].text_type, TextType.IMAGE)
+        self.assertEqual(output[7].text, "obi wan image")
+        self.assertEqual(output[7].url, "https://i.imgur.com/fJRm4Vk.jpeg")
+        self.assertEqual(output[8].text_type, TextType.PLAIN)
+        self.assertEqual(output[8].text, " and a ")
+        self.assertEqual(output[9].text_type, TextType.LINK)
+        self.assertEqual(output[9].text, "link")
+        self.assertEqual(output[9].url, "https://boot.dev")
+        self.assertEqual(output[10].text_type, TextType.PLAIN)
+        self.assertEqual(output[10].text, "")
 
 
 if __name__ == "__main__":
