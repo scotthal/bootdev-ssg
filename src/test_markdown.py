@@ -1,5 +1,7 @@
 import unittest
 
+from markdown import extract_markdown_images
+from markdown import extract_markdown_links
 from markdown import split_nodes_delimiter
 from textnode import TextNode, TextType
 
@@ -53,6 +55,17 @@ class TestMarkdown(unittest.TestCase):
         self.assertEqual(output[2].text_type, TextType.PLAIN)
         self.assertEqual(output[2].text, "")
 
+    def test_split_begin_end(self):
+        input = TextNode("_italic only_", TextType.PLAIN)
+        output = split_nodes_delimiter([input], "_", TextType.ITALIC)
+        self.assertEqual(len(output), 3)
+        self.assertEqual(output[0].text_type, TextType.PLAIN)
+        self.assertEqual(output[0].text, "")
+        self.assertEqual(output[1].text_type, TextType.ITALIC)
+        self.assertEqual(output[1].text, "italic only")
+        self.assertEqual(output[2].text_type, TextType.PLAIN)
+        self.assertEqual(output[2].text, "")
+
     def test_split_multi(self):
         input = TextNode("multiple **bold** parts in **this** string",
                          TextType.PLAIN)
@@ -88,6 +101,71 @@ class TestMarkdown(unittest.TestCase):
         input = TextNode("this `code never ends", TextType.PLAIN)
         with self.assertRaises(ValueError):
             split_nodes_delimiter([input], "`", TextType.CODE)
+
+    def test_extract_images_basic(self):
+        output = extract_markdown_images(
+            "![alt text](https://example.com/image.png)")
+        self.assertEqual(output,
+                         [("alt text", "https://example.com/image.png")])
+
+    def test_extract_images_link(self):
+        output = extract_markdown_images("[link text](https://example.com/)")
+        self.assertEqual(output, [])
+
+    def test_extract_images_no_image(self):
+        output = extract_markdown_images("no images here!")
+        self.assertEqual(output, [])
+
+    def test_extract_images_empty(self):
+        output = extract_markdown_images("")
+        self.assertEqual(output, [])
+
+    def test_extract_images_none(self):
+        with self.assertRaises(TypeError):
+            extract_markdown_images(None)
+
+    def test_extract_images_multiple(self):
+        output = extract_markdown_images("""
+![alt text](https://example.com/alt.png)
+[link text](https://example.com/)
+I like cheese!
+![cheese text](https://example.com/cheese.png)""")
+        self.assertEqual(output, [
+            ("alt text", "https://example.com/alt.png"),
+            ("cheese text", "https://example.com/cheese.png"),
+        ])
+
+    def test_extract_links_basic(self):
+        output = extract_markdown_links("[link text](https://example.com/)")
+        self.assertEqual(output, [("link text", "https://example.com/")])
+
+    def test_extract_links_image(self):
+        output = extract_markdown_links(
+            "![alt text](https://example.com/image.png)")
+        self.assertEqual(output, [])
+
+    def test_extract_links_no_links(self):
+        output = extract_markdown_links("[no links in here]")
+        self.assertEqual(output, [])
+
+    def test_extract_links_empty(self):
+        output = extract_markdown_links("")
+        self.assertEqual(output, [])
+
+    def test_extract_links_none(self):
+        with self.assertRaises(TypeError):
+            extract_markdown_links(None)
+
+    def test_extract_links_multiple(self):
+        output = extract_markdown_links("""
+[alt text](https://example.com/alt.png)
+I like cheese!
+![cheese text](https://example.com/cheese.png)
+[cheese text 2](https://example.com/cheese2.png)""")
+        self.assertEqual(output, [
+            ("alt text", "https://example.com/alt.png"),
+            ("cheese text 2", "https://example.com/cheese2.png"),
+        ])
 
 
 if __name__ == "__main__":
