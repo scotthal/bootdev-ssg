@@ -2,6 +2,7 @@ import unittest
 
 from markdown import extract_markdown_images
 from markdown import extract_markdown_links
+from markdown import markdown_to_blocks
 from markdown import split_nodes_delimiter
 from markdown import split_nodes_image
 from markdown import split_nodes_link
@@ -10,6 +11,49 @@ from textnode import TextNode, TextType
 
 
 class TestMarkdown(unittest.TestCase):
+
+    def test_markdown_to_blocks_basic(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_markdown_to_blocks_empty(self):
+        blocks = markdown_to_blocks("")
+        self.assertEqual(blocks, [])
+
+    def test_markdown_to_blocks_many_blank_lines(self):
+        md = """Paragraph 1
+
+
+
+
+Paragraph 2"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Paragraph 1", "Paragraph 2"])
+
+    def test_markdown_to_blocks_whitespace(self):
+        md = """   Paragraph 1
+
+  Paragraph 2
+
+Paragraph 3  """
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Paragraph 1", "Paragraph 2", "Paragraph 3"])
 
     def test_split_bold(self):
         input = TextNode("string with **bold** text", TextType.PLAIN)
