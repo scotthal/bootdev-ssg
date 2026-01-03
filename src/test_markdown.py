@@ -1,5 +1,7 @@
 import unittest
 
+from markdown import BlockType
+from markdown import block_to_block_type
 from markdown import extract_markdown_images
 from markdown import extract_markdown_links
 from markdown import markdown_to_blocks
@@ -54,6 +56,100 @@ Paragraph 2"""
 Paragraph 3  """
         blocks = markdown_to_blocks(md)
         self.assertEqual(blocks, ["Paragraph 1", "Paragraph 2", "Paragraph 3"])
+
+    def test_block_to_block_type_paragraph(self):
+        block_type = block_to_block_type("I'm just a paragraph")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_empty(self):
+        block_type = block_to_block_type("")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_heading(self):
+        block_type = block_to_block_type("### Heading")
+        self.assertEqual(block_type, BlockType.HEADING)
+
+    def test_block_to_block_type_bad_heading(self):
+        block_type = block_to_block_type("####### Seven")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_code(self):
+        block_type = block_to_block_type("```code```")
+        self.assertEqual(block_type, BlockType.CODE)
+
+    def test_block_to_block_type_code_multi(self):
+        block = """```
+code
+```"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type, BlockType.CODE)
+
+    def test_block_to_block_type_bad_code(self):
+        block_type = block_to_block_type("```not closed")
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_quote(self):
+        block_type = block_to_block_type("> quote")
+        self.assertEqual(block_type, BlockType.QUOTE)
+
+    def test_block_to_block_type_quote_multi(self):
+        block = """> multi
+> line
+> quote"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type, BlockType.QUOTE)
+
+    def test_block_to_block_type_bad_quote(self):
+        block = """> Looks like a quote
+but
+> isn't actually a quote"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_unordered_list(self):
+        block_type = block_to_block_type("- list")
+        self.assertEqual(block_type, BlockType.UNORDERED_LIST)
+
+    def test_block_to_block_type_unordered_list_multi(self):
+        block = """- several
+- list
+- elements"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type, BlockType.UNORDERED_LIST)
+
+    def test_block_to_block_type_bad_unordered_list(self):
+        block = """- maybe
+or
+- maybe not"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_ordered_list(self):
+        block_type = block_to_block_type("1. list")
+        self.assertEqual(block_type, BlockType.ORDERED_LIST)
+
+    def test_block_to_block_type_ordered_list_multi(self):
+        block = """1. Let's
+2. try
+3. for
+4. two
+5. digits
+6. seems
+7. good
+8. to
+9. verify
+10. if
+11. you
+12. ask
+13. me"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type, BlockType.ORDERED_LIST)
+
+    def test_block_to_block_type_bad_ordered_list(self):
+        block = """1. apparently
+1. you have to increment?"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_type, BlockType.PARAGRAPH)
 
     def test_split_bold(self):
         input = TextNode("string with **bold** text", TextType.PLAIN)

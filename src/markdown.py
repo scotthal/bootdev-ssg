@@ -1,10 +1,69 @@
 import re
+from enum import Enum
 
 from textnode import TextNode, TextType
 
 
 def markdown_to_blocks(markdown):
     return [l.strip() for l in markdown.split("\n\n") if l != ""]
+
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered list"
+    ORDERED_LIST = "ordered list"
+
+
+def block_is_heading(block):
+    return re.match(r"^#{1,6} \w+", block) is not None
+
+
+def block_is_code(block):
+    return len(block) >= 6 and block.startswith("```") and block.endswith(
+        "```")
+
+
+def block_is_quote(lines):
+    for line in lines:
+        if not line.startswith(">"):
+            return False
+    return True
+
+
+def block_is_unodered_list(lines):
+    for line in lines:
+        if not line.startswith("- "):
+            return False
+    return True
+
+
+def block_is_ordered_list(lines):
+    n = 1
+    for line in lines:
+        if not line.startswith(f"{n}. "):
+            return False
+        n += 1
+    return True
+
+
+def block_to_block_type(block):
+    if block_is_heading(block):
+        return BlockType.HEADING
+    elif block_is_code(block):
+        return BlockType.CODE
+
+    lines = block.split("\n")
+    if block_is_quote(lines):
+        return BlockType.QUOTE
+    elif block_is_unodered_list(lines):
+        return BlockType.UNORDERED_LIST
+    elif block_is_ordered_list(lines):
+        return BlockType.ORDERED_LIST
+
+    return BlockType.PARAGRAPH
 
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
