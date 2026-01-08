@@ -32,7 +32,7 @@ def parent_node_from_block_type(block_type, block):
         case BlockType.CODE:
             return ParentNode("pre", [])
         case BlockType.HEADING:
-            return ParentNode(f"h{heading_block_level(block)}")
+            return ParentNode(f"h{heading_block_level(block)}", [])
         case BlockType.ORDERED_LIST:
             return ParentNode("ol", [])
         case BlockType.PARAGRAPH:
