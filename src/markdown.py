@@ -21,6 +21,13 @@ def block_is_heading(block):
     return re.match(r"^#{1,6} \w+", block) is not None
 
 
+def heading_block_level(block):
+    i = 0
+    while block[i] == "#":
+        i += 1
+    return i
+
+
 def block_is_code(block):
     return len(block) >= 6 and block.startswith("```") and block.endswith(
         "```")
@@ -79,6 +86,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
         splits = node.text.split(delimiter)
         for split in splits:
+            split = " ".join(split.splitlines())
             if in_span:
                 new_nodes.append(TextNode(split, text_type, node.url))
             else:
