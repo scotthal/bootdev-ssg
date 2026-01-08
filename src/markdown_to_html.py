@@ -56,6 +56,7 @@ def leaf_children(text):
     text_nodes = text_to_textnodes(text)
     return [text_node_to_html_node(text_node) for text_node in text_nodes]
 
+
 def quote_to_children(text):
     children = []
     lines = text.splitlines()
