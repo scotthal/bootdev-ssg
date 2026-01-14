@@ -51,13 +51,20 @@ This is another paragraph with _italic_ text and `code` here"""
 
 1. followed
 2. _by_
-3. another"""
+3. another
+4. only
+5. this
+6. one
+7. has
+8. ten
+9. items
+10. total"""
 
         node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><ol><li>one</li><li>ordered</li><li>list</li></ol><ol><li>followed</li><li><i>by</i></li><li>another</li></ol></div>"
+            "<div><ol><li>one</li><li>ordered</li><li>list</li></ol><ol><li>followed</li><li><i>by</i></li><li>another</li><li>only</li><li>this</li><li>one</li><li>has</li><li>ten</li><li>items</li><li>total</li></ol></div>"
         )
 
     def test_quotes(self):
