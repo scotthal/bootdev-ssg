@@ -27,6 +27,8 @@ def text_to_children(block_type, text):
             return leaf_children(text)
         case BlockType.QUOTE:
             return quote_to_children(text)
+        case BlockType.UNORDERED_LIST:
+            return unordered_list_to_children(text)
         case _:
             raise NotImplementedError()
 
@@ -67,4 +69,12 @@ def quote_to_children(text):
             actual_line = " " + actual_line
         children.extend(leaf_children(actual_line))
         first = False
+    return children
+
+
+def unordered_list_to_children(text):
+    children = []
+    lines = text.splitlines()
+    for line in lines:
+        children.append(ParentNode("li", leaf_children(line[2:].strip())))
     return children

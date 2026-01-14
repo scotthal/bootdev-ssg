@@ -61,3 +61,19 @@ This is another paragraph with _italic_ text and `code` here"""
             html,
             "<div><blockquote>one quote</blockquote><blockquote>followed <code>by</code> another</blockquote></div>"
         )
+
+    def test_unordered_lists(self):
+        md = """- one
+- ordered
+- list
+
+- followed
+- _by_
+- another"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>one</li><li>ordered</li><li>list</li></ul><ul><li>followed</li><li><i>by</i></li><li>another</li></ul></div>"
+        )
