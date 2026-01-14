@@ -45,7 +45,7 @@ def ordered_list_to_children(text):
     lines = text.splitlines()
     i = 1
     for line in lines:
-        digits = math.ceil(math.log10(i))
+        digits = len(str(i))
         children.append(
             ParentNode("li", leaf_children(line[digits + 2:].strip())))
         i += 1
