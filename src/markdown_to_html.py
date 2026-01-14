@@ -1,5 +1,3 @@
-import math
-
 from leafnode import text_node_to_html_node
 from markdown import BlockType, block_to_block_type, markdown_to_blocks
 from markdown import text_to_textnodes
