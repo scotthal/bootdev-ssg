@@ -2,6 +2,7 @@ from leafnode import text_node_to_html_node
 from markdown import BlockType, block_to_block_type, markdown_to_blocks
 from markdown import text_to_textnodes
 from parentnode import ParentNode, parent_node_from_block_type
+from textnode import TextNode, TextType
 
 
 def markdown_to_html_node(markdown):
@@ -17,6 +18,8 @@ def markdown_to_html_node(markdown):
 
 def text_to_children(block_type, text):
     match block_type:
+        case BlockType.CODE:
+            return code_to_children(text)
         case BlockType.HEADING:
             return heading_to_children(text)
         case BlockType.ORDERED_LIST:
@@ -29,6 +32,11 @@ def text_to_children(block_type, text):
             return unordered_list_to_children(text)
         case _:
             raise NotImplementedError()
+
+
+def code_to_children(text):
+    child = TextNode(text[4:-4], TextType.CODE)
+    return [text_node_to_html_node(child)]
 
 
 def heading_to_children(text):

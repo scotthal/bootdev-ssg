@@ -5,6 +5,19 @@ from markdown_to_html import markdown_to_html_node
 
 class TestMarkdownToHTML(unittest.TestCase):
 
+    def test_code(self):
+        md = """```
+This is text that _should_ remain
+the **same** even with inline stuff
+```"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff</code></pre></div>",
+        )
+
     def test_paragraphs(self):
         md = """This is **bolded** paragraph
 text in a p
