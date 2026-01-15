@@ -31,7 +31,7 @@ def text_to_children(block_type, text):
         case BlockType.UNORDERED_LIST:
             return unordered_list_to_children(text)
         case _:
-            raise NotImplementedError()
+            raise ValueError(f"Unknown block type {block_type}")
 
 
 def code_to_children(text):
